@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentinelchain-common"
+version = "0.1.0"
+description = "Shared foundations for SentinelChain services: envelope, config, logging, Kafka, observability, resilience, LLM provider abstraction."
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "structlog>=24.1",
+    "prometheus-client>=0.20",
+]
+
+[project.optional-dependencies]
+kafka = ["confluent-kafka>=2.3"]
+otel = [
+    "opentelemetry-api>=1.24",
+    "opentelemetry-sdk>=1.24",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.24",
+]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.9",
+    "pytest>=8.1",
+    "pytest-asyncio>=0.23",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+sentinelchain_common = ["py.typed"]

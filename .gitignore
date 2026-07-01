@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+.python-version
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Node / frontend
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Java / Flink / Maven
+target/
+*.class
+.gradle/
+
+# Data / local infra
+data/
+volumes/
+*.log
+.DS_Store
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ML / MLflow / artifacts
+mlruns/
+*.ckpt
+*.joblib
+*.onnx

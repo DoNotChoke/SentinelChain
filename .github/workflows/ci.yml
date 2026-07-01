@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    name: Python (lint • typecheck • test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install libs/common with dev extras
+        run: python -m pip install -e "libs/common[dev]"
+
+      - name: Ruff lint
+        run: python -m ruff check .
+
+      - name: Ruff format check
+        run: python -m ruff format --check .
+
+      - name: Mypy type check
+        run: python -m mypy libs/common/src
+
+      - name: Pytest
+        run: python -m pytest
+
+  compose:
+    name: docker compose config validates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate core + full profiles
+        run: |
+          docker compose --profile core config --quiet
+          docker compose --profile full config --quiet

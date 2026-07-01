@@ -1,0 +1,49 @@
+# Root tooling configuration for the SentinelChain monorepo.
+# Individual Python packages live under libs/* and services/* with their own
+# pyproject.toml. This file holds the SHARED ruff / mypy / pytest config so every
+# package is linted, type-checked and tested the same way.
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["libs", "services"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "B008", # function call in default arg (FastAPI Depends pattern)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sentinelchain_common"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+plugins = ["pydantic.mypy"]
+mypy_path = "libs/common/src"
+exclude = ['(^|/)tests/']
+
+[[tool.mypy.overrides]]
+module = ["confluent_kafka.*", "prometheus_client.*", "opentelemetry.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = ["libs/common/tests"]
+pythonpath = ["libs/common/src"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["error"]

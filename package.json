@@ -1,0 +1,16 @@
+{
+  "name": "sentinelchain",
+  "private": true,
+  "version": "0.0.0",
+  "description": "SentinelChain — real-time supply-chain risk intelligence & hybrid RAG copilot",
+  "workspaces": [
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "lint": "echo \"frontend workspace not scaffolded yet (Phase 4)\"",
+    "test": "echo \"frontend workspace not scaffolded yet (Phase 4)\""
+  }
+}
