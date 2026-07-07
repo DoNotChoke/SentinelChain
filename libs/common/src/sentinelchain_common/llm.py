@@ -1,12 +1,4 @@
-"""LLM provider abstraction (docs/IMPLEMENTATION_PLAN.md §D).
-
-The orchestrator talks to a single :class:`LLMProvider` interface. Concrete providers
-(Anthropic, OpenAI-compatible, vLLM) live in ``services/llm-gateway``; the deterministic
-:class:`MockProvider` lives here so it can back unit/CI tests without network or API keys.
-
-Cross-cutting concerns (retry, circuit breaker, idempotency cache, rate limiting, tracing,
-metrics) are applied by the gateway around the provider — providers only "call the model".
-"""
+"""LLM provider abstraction"""
 
 from __future__ import annotations
 
@@ -32,11 +24,6 @@ class ChatMessage(BaseModel):
 
 
 class ToolSpec(BaseModel):
-    """A whitelisted structured tool the model may call (PLAN §15.2, §27).
-
-    The LLM never generates free-form SQL; it may only request these schema-bound tools.
-    """
-
     model_config = ConfigDict(extra="forbid")
     name: str
     description: str
@@ -92,8 +79,6 @@ class ProviderCapabilities(BaseModel):
 
 @runtime_checkable
 class LLMProvider(Protocol):
-    """The contract every provider implements."""
-
     @property
     def capabilities(self) -> ProviderCapabilities: ...
 
@@ -103,16 +88,8 @@ class LLMProvider(Protocol):
 
 
 class MockProvider:
-    """Deterministic provider for tests and local development (no network, no keys).
-
-    By default echoes a canned answer. Pass ``responder`` to compute a response from the
-    request, or ``canned_parsed`` to return a fixed structured object when a response schema
-    is requested.
-    """
-
     def __init__(
         self,
-        *,
         model: str = "mock-1",
         responder: Callable[[LLMRequest], str] | None = None,
         canned_parsed: dict[str, Any] | None = None,
@@ -124,7 +101,9 @@ class MockProvider:
     @property
     def capabilities(self) -> ProviderCapabilities:
         return ProviderCapabilities(
-            supports_tools=True, supports_json_mode=True, max_context_tokens=8192
+            supports_tools=True,
+            supports_json_mode=True,
+            max_context_tokens=8192,
         )
 
     async def generate(self, req: LLMRequest) -> LLMResponse:

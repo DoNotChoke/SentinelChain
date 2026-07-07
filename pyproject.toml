@@ -42,8 +42,14 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"
-testpaths = ["libs/common/tests"]
-pythonpath = ["libs/common/src"]
+testpaths = [
+    "libs/common/tests",
+    "services/supply-chain-simulator/tests",
+]
+pythonpath = [
+    "libs/common/src",
+    "services/supply-chain-simulator/src",
+]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = ["error"]

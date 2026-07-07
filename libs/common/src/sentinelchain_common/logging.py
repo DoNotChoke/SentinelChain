@@ -1,4 +1,4 @@
-"""Structured JSON logging (PLAN §26).
+"""Structured JSON logging.
 
 Logs are emitted as one JSON object per line with stable keys (timestamp, level, service,
 trace_id, ...). ``bind_context`` lets call sites attach per-request fields such as

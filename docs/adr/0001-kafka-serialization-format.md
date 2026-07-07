@@ -20,8 +20,11 @@ with subject `\<topic\>-value` via `scripts/register-schemas.sh`, and are enforc
 
 - The shared :class:`EventEnvelope` (PLAN §9) is the outer structure; domain payloads are
   nested Avro records.
-- Debezium CDC bronze topics keep Debezium's own JSON/Avro envelope; Flink produces cleaned
-  Avro current-state topics (see ADR-009).
+- **CDC exception (Phase 1):** Debezium CDC bronze topics (`ops.public.*`) use **Debezium JSON**
+  (`schemas.enable=false`), and Flink Job 3 currently emits **JSON** current-state topics via
+  `upsert-kafka` (see ADR-009). This keeps Job 3 as pure Flink SQL with no Avro/Registry wiring.
+  Migrating the current-state topics to Avro is deferred until the canonical business topics adopt
+  Avro (before Milestone 2 ships); the ADR-001 default (Avro) still governs all canonical topics.
 - During very early bootstrap, the minimal producer in `libs/common` emits JSON; it is
   replaced by an Avro serializer wired to Schema Registry before Milestone 2 ships.
 

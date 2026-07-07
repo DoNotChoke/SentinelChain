@@ -25,6 +25,9 @@ jobs:
       - name: Install libs/common with dev extras
         run: python -m pip install -e "libs/common[dev]"
 
+      - name: Install supply-chain-simulator with dev extras
+        run: python -m pip install -e "services/supply-chain-simulator[dev]"
+
       - name: Ruff lint
         run: python -m ruff check .
 

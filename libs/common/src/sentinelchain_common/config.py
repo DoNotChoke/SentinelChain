@@ -1,9 +1,4 @@
-"""Configuration loading via pydantic-settings.
-
-Every service derives its settings from :class:`BaseServiceSettings`, which provides the
-infrastructure connection details common to all of them. Values come from environment
-variables (12-factor); see ``.env.example``. No secrets are hard-coded (PLAN §36.4).
-"""
+"""Configuration for SentinelChain"""
 
 from __future__ import annotations
 
@@ -12,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class BaseServiceSettings(BaseSettings):
-    """Base settings shared by all SentinelChain services."""
+    """Base settings for SentinelChain services."""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -21,7 +16,6 @@ class BaseServiceSettings(BaseSettings):
         case_sensitive=False,
     )
 
-    # Deployment
     sentinel_env: str = "dev"
     service_name: str = "sentinelchain-service"
     log_level: str = "INFO"
@@ -33,7 +27,7 @@ class BaseServiceSettings(BaseSettings):
     kafka_topic_replication_factor: int = 1
     kafka_topic_min_insync_replicas: int = 1
 
-    # Stores
+    # Storage
     postgres_dsn: str = "postgresql://sentinel:sentinel@localhost:5432/sentinel"
     opensearch_url: str = "http://localhost:9200"
     redis_url: str = "redis://localhost:6379/0"

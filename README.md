@@ -27,8 +27,19 @@ It is built as two pipelines on a shared Kafka backbone:
 
 ## Status
 
-Bootstrapping (Milestone 0). See the roadmap in
+Milestone 1 — **Operational data + CDC** (in progress). Postgres schema, the
+[`supply-chain-simulator`](services/supply-chain-simulator/), Debezium CDC, and Flink Job 3
+(`operational-current-state`) are running end-to-end: a change in Postgres flows through
+`ops.public.*` (Debezium) to compacted `ops.<entity>.current.v1` topics (see the
+[data contract](docs/data-contracts/ops-current-state.md)). See the roadmap in
 [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md#e-lộ-trình-triển-khai-theo-giai-đoạn).
+
+```bash
+make up-full          # core + Flink/Connect
+make seed             # apply schema + seed the demo scenario
+make register-connectors   # Debezium Postgres source
+make submit-job3      # Flink Job 3: operational-current-state
+```
 
 ## Quick start
 

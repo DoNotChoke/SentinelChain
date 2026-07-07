@@ -1,4 +1,4 @@
-"""Resilience primitives: exponential-backoff retry and a circuit breaker (PLAN §23, §36.13).
+"""Resilience primitives: exponential-backoff retry and a circuit breaker.
 
 Every external call (HTTP source, embedding, LLM, OpenSearch) must have timeout + retry +
 circuit breaker. These helpers provide the retry/breaker half; timeouts are applied by the

@@ -1,0 +1,32 @@
+{
+  "name": "sentinel-postgres-source",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "sentinel",
+    "database.password": "sentinel",
+    "database.dbname": "sentinel",
+
+    "plugin.name": "pgoutput",
+    "slot.name": "sentinel_slot",
+    "publication.name": "sentinel_publication",
+    "publication.autocreate.mode": "filtered",
+
+    "topic.prefix": "ops",
+    "table.include.list": "public.suppliers,public.facilities,public.shipments,public.inventory,public.purchase_orders",
+
+    "snapshot.mode": "initial",
+    "tombstones.on.delete": "true",
+
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "connect",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}

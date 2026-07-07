@@ -1,4 +1,4 @@
-"""Time utilities. All datetimes in SentinelChain are timezone-aware UTC (PLAN §36.11)."""
+"""Time utilities. All datetimes in SentinelChain are timezone-aware UTC"""
 
 from __future__ import annotations
 

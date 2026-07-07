@@ -128,13 +128,15 @@ services:
   # ── Connect / Flink (full) ──────────────────────────────────────────────────
   kafka-connect:
     image: debezium/connect:2.7.3.Final
-    profiles: ["full"]
+    profiles: ["core", "full"]
     <<: *restart
     depends_on:
       kafka:
         condition: service_healthy
       schema-registry:
         condition: service_started
+      postgres:
+        condition: service_healthy
     ports:
       - "8083:8083"
     environment:
@@ -150,10 +152,15 @@ services:
       VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
 
   flink-jobmanager:
-    image: flink:1.18-java17
+    build:
+      context: ./infra/flink
+    image: sentinelchain/flink:1.18
     profiles: ["full"]
     <<: *restart
     command: jobmanager
+    depends_on:
+      kafka:
+        condition: service_healthy
     ports:
       - "8082:8081"
     environment:
@@ -161,9 +168,13 @@ services:
         jobmanager.rpc.address: flink-jobmanager
         state.backend: rocksdb
         execution.checkpointing.interval: 10s
+    volumes:
+      - ./flink/sql:/opt/sql:ro
 
   flink-taskmanager:
-    image: flink:1.18-java17
+    build:
+      context: ./infra/flink
+    image: sentinelchain/flink:1.18
     profiles: ["full"]
     <<: *restart
     depends_on:

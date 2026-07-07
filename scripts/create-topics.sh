@@ -27,7 +27,13 @@ TOPICS=(
   "events.entities.v1:3:delete"
   "events.geo_enriched.v1:3:delete"
   "events.current.v1:3:compact"
-  # Operational current-state (compacted; CDC bronze topics are created by Debezium)
+  # Operational CDC bronze (Debezium raw changelog, PLAN §10.2)
+  "ops.public.suppliers:3:delete"
+  "ops.public.facilities:3:delete"
+  "ops.public.shipments:3:delete"
+  "ops.public.inventory:3:delete"
+  "ops.public.purchase_orders:3:delete"
+  # Operational current-state (compacted, produced by Flink Job 3)
   "ops.suppliers.current.v1:3:compact"
   "ops.facilities.current.v1:3:compact"
   "ops.shipments.current.v1:3:compact"

@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
-# Seed operational data (suppliers/facilities/PO/shipments/inventory) into Postgres.
-# Implemented in Milestone 1 (supply-chain-simulator). Placeholder for now.
+# Apply the operational schema (Alembic) and seed the deterministic demo scenario (PLAN §35).
+# Idempotent: migrations are versioned; the seed uses merge-on-primary-key.
 set -euo pipefail
-echo "seed-operational-data: not implemented yet (Milestone 1)."
-exit 0
+
+cd "$(dirname "$0")/.."
+
+PYTHON="${PYTHON:-python}"
+export POSTGRES_DSN="${POSTGRES_DSN:-postgresql://sentinel:sentinel@localhost:5432/sentinel}"
+
+echo "==> Applying operational schema (alembic upgrade head)"
+${PYTHON} -m alembic -c services/supply-chain-simulator/alembic.ini upgrade head
+
+echo "==> Seeding demo scenario (seed-only, no continuous loop)"
+SIMULATOR_SEED_ON_START=true SIMULATOR_RUN_LOOP=false \
+  ${PYTHON} -m supply_chain_simulator.main
+
+echo "==> Done."

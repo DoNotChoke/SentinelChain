@@ -1,8 +1,4 @@
-"""Canonical event envelope shared by every Kafka message (PLAN §9).
-
-The envelope carries routing/observability metadata; the domain-specific body lives in
-``payload``. Keep this in lockstep with ADR-006 and the Avro schemas under ``schemas/avro``.
-"""
+"""Cannonical event evelope shared by Kafka message"""
 
 from __future__ import annotations
 
@@ -24,7 +20,7 @@ def new_uuid() -> str:
 class EventEnvelope(BaseModel):
     """Common envelope for all canonical events.
 
-    Field semantics (PLAN §9):
+    Field semantics:
       - ``event_id``       unique per message (dedup is NOT done on this field).
       - ``source_event_id`` stable across upstream updates of the same logical event.
       - ``source_version``  monotonic marker used to deduplicate/version (PLAN §11.2).
@@ -48,10 +44,8 @@ class EventEnvelope(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
 
     def dedup_key(self) -> str:
-        """Stable identity for deduplication: ``source + source_event_id`` (PLAN §11.2)."""
         return f"{self.source}:{self.source_event_id}"
 
     def payload_hash(self) -> str:
-        """Deterministic hash of the payload, used to detect no-op updates (PLAN §11.2)."""
         encoded = json.dumps(self.payload, sort_keys=True, separators=(",", ":"), default=str)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()

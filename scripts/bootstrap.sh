@@ -24,4 +24,7 @@ bash scripts/create-topics.sh
 echo "==> Registering schemas"
 bash scripts/register-schemas.sh
 
+echo "==> Registering Debezium CDC connector"
+bash scripts/register-connectors.sh
+
 echo "==> Bootstrap complete"

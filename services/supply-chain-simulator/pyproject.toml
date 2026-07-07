@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "supply-chain-simulator"
+version = "0.1.0"
+description = "Operational supply-chain simulator: continuously writes suppliers/facilities/shipments/inventory into PostgreSQL as the CDC source (PLAN §7.6, Milestone 1)."
+requires-python = ">=3.12"
+dependencies = [
+    "sentinelchain-common>=0.1",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.1",
+    "alembic>=1.13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.9",
+    "pytest>=8.1",
+]
+
+[project.scripts]
+supply-chain-simulator = "supply_chain_simulator.main:main"
+
+[tool.uv.sources]
+sentinelchain-common = { path = "../../libs/common", editable = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,4 +1,4 @@
-"""Observability helpers: Prometheus metrics and optional OpenTelemetry tracing (PLAN §26).
+"""Observability helpers: Prometheus metrics and optional OpenTelemetry tracing.
 
 Prometheus is a core dependency. OpenTelemetry is optional (install the ``otel`` extra); the
 tracing setup imports it lazily so the package works without it.
