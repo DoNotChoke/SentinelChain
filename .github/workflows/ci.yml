@@ -28,6 +28,9 @@ jobs:
       - name: Install supply-chain-simulator with dev extras
         run: python -m pip install -e "services/supply-chain-simulator[dev]"
 
+      - name: Install ingestion-usgs with dev extras
+        run: python -m pip install -e "services/ingestion-usgs[dev]"
+
       - name: Ruff lint
         run: python -m ruff check .
 

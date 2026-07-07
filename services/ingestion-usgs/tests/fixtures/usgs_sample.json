@@ -1,0 +1,67 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "generated": 1751360900000,
+    "title": "USGS All Earthquakes, Past Hour",
+    "count": 4
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "us7000valid",
+      "properties": {
+        "mag": 6.2,
+        "place": "Near the east coast of Honshu, Japan",
+        "time": 1782896400000,
+        "updated": 1782896880000,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000valid"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [139.2, 35.1, 38.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "us7000micro",
+      "properties": {
+        "mag": -0.4,
+        "place": "10km NE of Somewhere, CA",
+        "time": 1782896500000,
+        "updated": 1782896500000,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000micro"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-121.5, 37.0, 5.2]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "us7000badlat",
+      "properties": {
+        "mag": 4.0,
+        "place": "Impossible place",
+        "time": 1782897000000,
+        "updated": 1782897000000,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000badlat"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [10.0, 999.0, 1.0]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "us7000nogeom",
+      "properties": {
+        "mag": 3.3,
+        "place": "No geometry",
+        "time": 1782897300000,
+        "updated": 1782897300000,
+        "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000nogeom"
+      },
+      "geometry": null
+    }
+  ]
+}

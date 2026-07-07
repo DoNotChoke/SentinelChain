@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from typing import Any
 
-from confluent_kafka import Producer
+from confluent_kafka import Message, Producer
 
 from .config import BaseServiceSettings
 from .envelope import EventEnvelope
+
+DeliveryCallback = Callable[[Any | None, Message], None]
 
 
 def producer_config(settings: BaseServiceSettings) -> dict[str, Any]:
@@ -49,7 +52,20 @@ class EnvelopeProducer:
             self._producer = Producer(self._config)
         return self._producer
 
-    def produce(self, topic: str, key: str, envelope: EventEnvelope) -> None:
+    def produce(
+        self,
+        topic: str,
+        key: str,
+        envelope: EventEnvelope,
+        *,
+        on_delivery: DeliveryCallback | None = None,
+    ) -> None:
+        """Buffer a message for delivery.
+
+        ``on_delivery(err, msg)`` (if given) is invoked from ``flush``/``poll`` once the broker
+        acknowledges or the send fails — use it to confirm an ack *before* committing a cursor
+        (PLAN §11.1: never commit the cursor before Kafka acknowledges).
+        """
         producer = self._ensure()
         value = json.dumps(envelope.model_dump(mode="json"), separators=(",", ":"))
         producer.produce(
@@ -57,6 +73,7 @@ class EnvelopeProducer:
             key=key.encode("utf-8"),
             value=value.encode("utf-8"),
             headers={"trace_id": envelope.trace_id, "event_type": envelope.event_type},
+            on_delivery=on_delivery,
         )
 
     def flush(self, timeout: float = 10.0) -> int:

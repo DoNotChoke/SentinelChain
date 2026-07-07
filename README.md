@@ -27,10 +27,16 @@ It is built as two pipelines on a shared Kafka backbone:
 
 ## Status
 
-Milestone 1 — **Operational data + CDC** (in progress). Postgres schema, the
+Milestone 2 — **External event ingestion (USGS)**, phase M2a (in progress). The
+[`ingestion-usgs`](services/ingestion-usgs/) service polls the USGS GeoJSON feed with a
+persisted Redis cursor and an idempotent producer into `ext.usgs.raw.v1`; invalid records go to
+`audit.data_quality.v1` (see the [data contract](docs/data-contracts/ext-usgs-raw.md)). A service
+restart does not re-emit unchanged events. Avro + Schema Registry is deferred to M2b (ADR-001).
+
+Milestone 1 — **Operational data + CDC** (done). Postgres schema, the
 [`supply-chain-simulator`](services/supply-chain-simulator/), Debezium CDC, and Flink Job 3
-(`operational-current-state`) are running end-to-end: a change in Postgres flows through
-`ops.public.*` (Debezium) to compacted `ops.<entity>.current.v1` topics (see the
+(`operational-current-state`) run end-to-end: a change in Postgres flows through `ops.public.*`
+(Debezium) to compacted `ops.<entity>.current.v1` topics (see the
 [data contract](docs/data-contracts/ops-current-state.md)). See the roadmap in
 [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md#e-lộ-trình-triển-khai-theo-giai-đoạn).
 
@@ -39,6 +45,10 @@ make up-full          # core + Flink/Connect
 make seed             # apply schema + seed the demo scenario
 make register-connectors   # Debezium Postgres source
 make submit-job3      # Flink Job 3: operational-current-state
+
+# Milestone 2 — USGS ingestion
+make create-topics    # ensure ext.usgs.raw.v1 + audit.data_quality.v1 exist
+make run-usgs         # poll USGS → ext.usgs.raw.v1
 ```
 
 ## Quick start

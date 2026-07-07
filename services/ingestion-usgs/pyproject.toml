@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ingestion-usgs"
+version = "0.1.0"
+description = "USGS earthquake ingestion: polls the USGS GeoJSON feed with a persisted cursor and an idempotent producer into ext.usgs.raw.v1 (PLAN §7.1, §11.1, Milestone 2)."
+requires-python = ">=3.12"
+dependencies = [
+    "sentinelchain-common[kafka]>=0.1",
+    "httpx>=0.27",
+    "redis>=5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4",
+    "mypy>=1.9",
+    "pytest>=8.1",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+ingestion-usgs = "ingestion_usgs.main:main"
+
+[tool.uv.sources]
+sentinelchain-common = { path = "../../libs/common", editable = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]

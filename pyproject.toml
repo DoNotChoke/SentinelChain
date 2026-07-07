@@ -45,10 +45,12 @@ addopts = "-ra -q"
 testpaths = [
     "libs/common/tests",
     "services/supply-chain-simulator/tests",
+    "services/ingestion-usgs/tests",
 ]
 pythonpath = [
     "libs/common/src",
     "services/supply-chain-simulator/src",
+    "services/ingestion-usgs/src",
 ]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"

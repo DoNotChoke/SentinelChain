@@ -5,8 +5,8 @@ COMPOSE ?= docker compose
 
 .DEFAULT_GOAL := help
 .PHONY: help up up-full down reset logs ps bootstrap create-topics register-schemas \
-        register-connectors migrate seed submit-job3 demo install lint format typecheck \
-        test test-integration
+        register-connectors migrate seed submit-job3 run-usgs demo install lint format \
+        typecheck test test-integration
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -52,6 +52,9 @@ seed: ## Apply schema + seed the deterministic demo scenario into Postgres
 
 submit-job3: ## Submit Flink Job 3 (operational-current-state) — requires up-full
 	bash scripts/submit-flink-sql.sh operational_current_state.sql
+
+run-usgs: ## Run the USGS ingestion service (poll → ext.usgs.raw.v1) — requires `make up`
+	$(PYTHON) -m ingestion_usgs.main
 
 demo: ## Run the end-to-end demo scenario (PLAN §35)
 	bash scripts/run-demo-scenario.sh
