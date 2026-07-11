@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from typing import Any
 
@@ -12,6 +11,10 @@ from .config import BaseServiceSettings
 from .envelope import EventEnvelope
 
 DeliveryCallback = Callable[[Any | None, Message], None]
+
+# Turns an envelope into the message value. Bound per topic, because the wire schema is per
+# topic — see ``avro.AvroEnvelopeSerializer`` (ADR-001).
+ValueSerializer = Callable[[EventEnvelope], bytes]
 
 
 def producer_config(settings: BaseServiceSettings) -> dict[str, Any]:
@@ -43,6 +46,13 @@ def consumer_config(settings: BaseServiceSettings, group_id: str) -> dict[str, A
 
 
 class EnvelopeProducer:
+    """Idempotent producer for envelope-shaped messages.
+
+    A :data:`ValueSerializer` is supplied per topic (the value schema is per topic); the key is
+    the deterministic partition key — plain UTF-8, not registry-managed, so only ``<topic>-value``
+    subjects exist.
+    """
+
     def __init__(self, settings: BaseServiceSettings) -> None:
         self._config = producer_config(settings)
         self._producer: Producer | None = None
@@ -57,6 +67,7 @@ class EnvelopeProducer:
         topic: str,
         key: str,
         envelope: EventEnvelope,
+        serialize: ValueSerializer,
         *,
         on_delivery: DeliveryCallback | None = None,
     ) -> None:
@@ -67,11 +78,10 @@ class EnvelopeProducer:
         (PLAN §11.1: never commit the cursor before Kafka acknowledges).
         """
         producer = self._ensure()
-        value = json.dumps(envelope.model_dump(mode="json"), separators=(",", ":"))
         producer.produce(
             topic=topic,
             key=key.encode("utf-8"),
-            value=value.encode("utf-8"),
+            value=serialize(envelope),
             headers={"trace_id": envelope.trace_id, "event_type": envelope.event_type},
             on_delivery=on_delivery,
         )

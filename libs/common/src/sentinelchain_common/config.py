@@ -27,6 +27,11 @@ class BaseServiceSettings(BaseSettings):
     kafka_topic_replication_factor: int = 1
     kafka_topic_min_insync_replicas: int = 1
 
+    # Avro (ADR-001). Schemas are the source of truth on disk and must be registered before a
+    # producer can use them; auto-registration is off so the registry stays the contract gate.
+    avro_schema_dir: str = "schemas/avro"
+    avro_auto_register_schemas: bool = False
+
     # Storage
     postgres_dsn: str = "postgresql://sentinel:sentinel@localhost:5432/sentinel"
     opensearch_url: str = "http://localhost:9200"

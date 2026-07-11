@@ -1,0 +1,100 @@
+{
+  "type": "record",
+  "name": "EventEnvelope",
+  "namespace": "sentinelchain.audit.data_quality.v1",
+  "doc": "Data-quality violation on audit.data_quality.v1 (PLAN §28). Records that fail validation are routed here instead of the raw topic. Subject: audit.data_quality.v1-value, BACKWARD compatibility (ADR-001).",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "data_quality.violation"
+    },
+    {
+      "name": "event_version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "doc": "The service that detected the violation, e.g. ingestion-usgs."
+    },
+    {
+      "name": "source_event_id",
+      "type": "string",
+      "doc": "Id of the offending record, or 'unknown' when the record has no parseable id."
+    },
+    {
+      "name": "source_version",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Detection time."
+    },
+    {
+      "name": "ingested_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "trace_id",
+      "type": "string"
+    },
+    {
+      "name": "correlation_id",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "tenant_id",
+      "type": "string",
+      "default": "demo"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "DataQualityViolation",
+        "fields": [
+          {
+            "name": "origin_source",
+            "type": "string",
+            "doc": "The upstream data source the record came from, e.g. usgs."
+          },
+          {
+            "name": "source_event_id",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Null when the record was too broken to yield an id."
+          },
+          {
+            "name": "reasons",
+            "type": {
+              "type": "array",
+              "items": "string"
+            },
+            "doc": "Why the record was rejected (structural parse errors or PLAN §28 checks)."
+          },
+          {
+            "name": "raw",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "The offending record as a JSON string. Avro has no 'any' type, so the original object is JSON-encoded rather than modelled — this topic must accept arbitrary malformed shapes."
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "type": "record",
+  "name": "EventEnvelope",
+  "namespace": "sentinelchain.ext.usgs.raw.v1",
+  "doc": "Raw USGS earthquake event on ext.usgs.raw.v1. Outer structure is the shared envelope (PLAN §9, ADR-006); the payload is the source-specific record. Subject: ext.usgs.raw.v1-value, BACKWARD compatibility (ADR-001).",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique per message. NOT the dedup key."
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "usgs.earthquake.raw"
+    },
+    {
+      "name": "event_version",
+      "type": "int",
+      "default": 1,
+      "doc": "Envelope schema version."
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "doc": "usgs"
+    },
+    {
+      "name": "source_event_id",
+      "type": "string",
+      "doc": "USGS event id (e.g. us7000xxxx). Stable across upstream updates; dedup keys on source + source_event_id (ADR-007)."
+    },
+    {
+      "name": "source_version",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Upstream 'updated' time as ISO-8601 UTC. Monotonic marker driving dedup/versioning (PLAN §11.2)."
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Business time: earthquake origin time. Flink uses this for event-time watermarks (Job 1)."
+    },
+    {
+      "name": "ingested_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "System receipt time."
+    },
+    {
+      "name": "trace_id",
+      "type": "string",
+      "doc": "Distributed tracing id; also propagated as a Kafka header."
+    },
+    {
+      "name": "correlation_id",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "tenant_id",
+      "type": "string",
+      "default": "demo"
+    },
+    {
+      "name": "payload",
+      "doc": "USGS-specific payload. Times here are ISO-8601 UTC strings (the envelope carries the machine-readable event_time).",
+      "type": {
+        "type": "record",
+        "name": "UsgsEarthquakeRaw",
+        "fields": [
+          {
+            "name": "source_event_id",
+            "type": "string"
+          },
+          {
+            "name": "magnitude",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "properties.mag — may be absent for very recent events."
+          },
+          {
+            "name": "latitude",
+            "type": "double",
+            "doc": "geometry.coordinates[1] — GeoJSON orders coordinates [lon, lat, depth]."
+          },
+          {
+            "name": "longitude",
+            "type": "double",
+            "doc": "geometry.coordinates[0]"
+          },
+          {
+            "name": "depth_km",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "geometry.coordinates[2]"
+          },
+          {
+            "name": "place",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "event_time",
+            "type": "string",
+            "doc": "ISO-8601 UTC."
+          },
+          {
+            "name": "updated_time",
+            "type": "string",
+            "doc": "ISO-8601 UTC. Equals source_version."
+          },
+          {
+            "name": "source_url",
+            "type": ["null", "string"],
+            "default": null
+          }
+        ]
+      }
+    }
+  ]
+}

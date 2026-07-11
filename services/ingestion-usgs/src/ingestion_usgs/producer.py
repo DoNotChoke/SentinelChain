@@ -1,16 +1,19 @@
 """Kafka producer for raw USGS events and data-quality audit records.
 
-Wraps the shared idempotent :class:`EnvelopeProducer`. Delivery is tracked per message so the
-caller can persist the dedup cursor **only for events the broker acknowledged** (PLAN §11.1).
+Wraps the shared idempotent :class:`EnvelopeProducer`, serializing to **Avro** against the
+Schema Registry (ADR-001). Delivery is tracked per message so the caller can persist the dedup
+cursor **only for events the broker acknowledged**.
 """
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from confluent_kafka import Message
 
 from sentinelchain_common import EventEnvelope, get_logger, utcnow
+from sentinelchain_common.avro import AvroEnvelopeSerializer
 from sentinelchain_common.kafka import EnvelopeProducer
 
 from .config import IngestionUsgsSettings
@@ -27,6 +30,9 @@ class RawEventProducer:
         self._producer = EnvelopeProducer(settings)
         self._raw_topic = settings.usgs_raw_topic
         self._dq_topic = settings.data_quality_topic
+        # One serializer per topic: each carries its own payload schema / registry subject.
+        self._raw_serializer = AvroEnvelopeSerializer(settings, self._raw_topic)
+        self._dq_serializer = AvroEnvelopeSerializer(settings, self._dq_topic)
         self._delivered: set[str] = set()
 
     def _on_delivery(self, source_event_id: str) -> Any:
@@ -52,13 +58,18 @@ class RawEventProducer:
             self._raw_topic,
             key=event.source_event_id,
             envelope=envelope,
+            serialize=self._raw_serializer,
             on_delivery=self._on_delivery(event.source_event_id),
         )
 
     def produce_data_quality(
         self, source_event_id: str | None, reasons: list[str], raw: dict[str, object] | None
     ) -> None:
-        """Emit a data-quality audit record for an invalid/unparseable feature (PLAN §28)."""
+        """Emit a data-quality audit record for an invalid/unparseable feature (PLAN §28).
+
+        ``raw`` is JSON-encoded rather than modelled: this topic must accept arbitrarily
+        malformed records, and Avro has no 'any' type.
+        """
         envelope = EventEnvelope(
             event_type=DATA_QUALITY_EVENT_TYPE,
             source="ingestion-usgs",
@@ -68,10 +79,15 @@ class RawEventProducer:
                 "origin_source": "usgs",
                 "source_event_id": source_event_id,
                 "reasons": reasons,
-                "raw": raw,
+                "raw": None if raw is None else json.dumps(raw, sort_keys=True, default=str),
             },
         )
-        self._producer.produce(self._dq_topic, key=source_event_id or "unknown", envelope=envelope)
+        self._producer.produce(
+            self._dq_topic,
+            key=source_event_id or "unknown",
+            envelope=envelope,
+            serialize=self._dq_serializer,
+        )
 
     def flush_and_confirm(self, timeout: float = 10.0) -> tuple[set[str], int]:
         """Flush buffered messages.

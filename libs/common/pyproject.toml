@@ -15,7 +15,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-kafka = ["confluent-kafka>=2.3"]
+# `avro` + `schemaregistry` extras pull fastavro and the registry HTTP client (ADR-001).
+kafka = ["confluent-kafka[avro,schemaregistry]>=2.3"]
 otel = [
     "opentelemetry-api>=1.24",
     "opentelemetry-sdk>=1.24",

@@ -23,7 +23,8 @@ jobs:
           cache: pip
 
       - name: Install libs/common with dev extras
-        run: python -m pip install -e "libs/common[dev]"
+        # `kafka` extra brings confluent-kafka + fastavro, which the Avro serde and its tests need.
+        run: python -m pip install -e "libs/common[kafka,otel,dev]"
 
       - name: Install supply-chain-simulator with dev extras
         run: python -m pip install -e "services/supply-chain-simulator[dev]"

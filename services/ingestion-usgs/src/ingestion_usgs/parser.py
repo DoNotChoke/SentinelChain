@@ -35,12 +35,6 @@ class FeatureParseError(ValueError):
 
 
 class UsgsEvent(BaseModel):
-    """A structurally-parsed USGS earthquake event (PLAN §7.1).
-
-    ``source_version`` is the upstream ``updated`` time as an ISO string; it is what drives
-    dedup/versioning downstream (a re-published event with a newer ``updated`` is a new version).
-    """
-
     model_config = ConfigDict(extra="forbid")
 
     source_event_id: str

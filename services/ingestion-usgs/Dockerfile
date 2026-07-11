@@ -12,6 +12,8 @@ WORKDIR /app
 # Shared library first (better layer caching).
 COPY libs/common /app/libs/common
 COPY services/ingestion-usgs /app/services/ingestion-usgs
+# Avro schemas are read at startup from AVRO_SCHEMA_DIR, relative to WORKDIR (ADR-001).
+COPY schemas /app/schemas
 
 RUN pip install --upgrade pip \
     && pip install /app/libs/common \

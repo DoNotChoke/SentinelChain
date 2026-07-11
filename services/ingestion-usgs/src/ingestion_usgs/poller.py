@@ -1,9 +1,4 @@
-"""Core poll cycle: fetch → parse → validate → dedup → produce → commit cursor.
-
-The ordering enforces the ingestion contract (PLAN §11.1): an event's dedup marker is recorded
-**only after** the broker acknowledges its produce, so a crash between produce and commit leads
-to a safe re-emit (idempotent producer + downstream dedup) rather than a lost event.
-"""
+"""Core poll cycle: fetch → parse → validate → dedup → produce → commit cursor."""
 
 from __future__ import annotations
 
@@ -42,7 +37,7 @@ class PollStats:
 
 
 class _FeedClient:
-    async def fetch_feed(self) -> dict[str, object]: ...  # pragma: no cover - typing only
+    async def fetch_feed(self) -> dict[str, object]: ...
 
 
 class Poller:
@@ -79,13 +74,11 @@ class Poller:
         stats = PollStats(fetched=len(events) + len(parse_errors))
         RECORDS_FETCHED_TOTAL.labels(SOURCE).inc(stats.fetched)
 
-        # Structurally-broken features → data-quality audit.
         for err in parse_errors:
             self._producer.produce_data_quality(err.source_event_id, [str(err)], None)
             stats.invalid += 1
 
         now = utcnow()
-        # (source_event_id, marker, updated_ms) for events buffered for produce this cycle.
         pending: list[tuple[str, str, int]] = []
 
         for event in events:

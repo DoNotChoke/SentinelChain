@@ -42,10 +42,14 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 addopts = "-ra -q"
+markers = [
+    "integration: needs live infrastructure (`make up`); skips itself when unreachable",
+]
 testpaths = [
     "libs/common/tests",
     "services/supply-chain-simulator/tests",
     "services/ingestion-usgs/tests",
+    "tests/contract",
 ]
 pythonpath = [
     "libs/common/src",

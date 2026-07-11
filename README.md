@@ -27,11 +27,14 @@ It is built as two pipelines on a shared Kafka backbone:
 
 ## Status
 
-Milestone 2 — **External event ingestion (USGS)**, phase M2a (in progress). The
+Milestone 2 — **External event ingestion (USGS)** (done). The
 [`ingestion-usgs`](services/ingestion-usgs/) service polls the USGS GeoJSON feed with a
 persisted Redis cursor and an idempotent producer into `ext.usgs.raw.v1`; invalid records go to
 `audit.data_quality.v1` (see the [data contract](docs/data-contracts/ext-usgs-raw.md)). A service
-restart does not re-emit unchanged events. Avro + Schema Registry is deferred to M2b (ADR-001).
+restart does not re-emit unchanged events. Events are serialized as **Avro** against the Schema
+Registry ([`schemas/avro/`](schemas/avro/) is the source of truth, subjects pinned to `BACKWARD`);
+producers do not auto-register, so an unreviewed schema fails fast (ADR-001). Compatibility is
+enforced by [`tests/contract/`](tests/contract/).
 
 Milestone 1 — **Operational data + CDC** (done). Postgres schema, the
 [`supply-chain-simulator`](services/supply-chain-simulator/), Debezium CDC, and Flink Job 3
@@ -48,6 +51,7 @@ make submit-job3      # Flink Job 3: operational-current-state
 
 # Milestone 2 — USGS ingestion
 make create-topics    # ensure ext.usgs.raw.v1 + audit.data_quality.v1 exist
+make register-schemas # register the Avro schemas (required before the first produce)
 make run-usgs         # poll USGS → ext.usgs.raw.v1
 ```
 

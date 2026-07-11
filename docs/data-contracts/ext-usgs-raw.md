@@ -90,19 +90,41 @@ The value is the shared [`EventEnvelope`](../../libs/common/src/sentinelchain_co
 
 ## Serialization
 
-M2a: **JSON** envelope via the shared `EnvelopeProducer`. Avro + Schema Registry migration is
-M2b (see ADR-001).
+**Avro** via Confluent Schema Registry (ADR-001).
+
+| | |
+|---|---|
+| Schema | [`schemas/avro/ext.usgs.raw.v1.avsc`](../../schemas/avro/ext.usgs.raw.v1.avsc) (source of truth) |
+| Subject | `ext.usgs.raw.v1-value` (TopicNameStrategy) |
+| Compatibility | `BACKWARD`, pinned by `make register-schemas` |
+| Key | `source_event_id` as plain UTF-8 — not registry-managed, so there is no `-key` subject |
+
+Two type mappings are worth knowing:
+
+- Envelope `event_time` / `ingested_at` are Avro **`timestamp-millis`** (not strings), so Flink
+  Job 1 can read `event_time` straight into a watermarked `TIMESTAMP(3)`.
+- Payload `event_time` / `updated_time` stay **ISO-8601 strings** — they mirror the upstream
+  values verbatim and are what `payload_hash` is computed over.
+
+Producers do **not** auto-register schemas (`AVRO_AUTO_REGISTER_SCHEMAS=false`): an unregistered
+schema fails fast rather than silently creating an unreviewed subject version. Run
+`make register-schemas` (or `make bootstrap`) before the first produce.
 
 ## Verifying
 
 ```bash
-make up && make create-topics
+make up && make create-topics && make register-schemas
 python -m ingestion_usgs.main   # or: make run-usgs
+```
 
-# Observe raw events:
-docker exec sentinelchain-kafka-1 /opt/kafka/bin/kafka-console-consumer.sh \
-  --bootstrap-server localhost:9092 --topic ext.usgs.raw.v1 \
-  --from-beginning --timeout-ms 8000 --property print.key=true
+Avro is binary, so `kafka-console-consumer` shows mojibake — decode with the registry instead:
+
+```bash
+docker run --rm --network sentinelchain_default confluentinc/cp-schema-registry:7.6.1 \
+  kafka-avro-console-consumer \
+  --bootstrap-server kafka:29092 --topic ext.usgs.raw.v1 \
+  --property schema.registry.url=http://schema-registry:8081 \
+  --property print.key=true --from-beginning --timeout-ms 8000
 ```
 
 Restarting the service must **not** re-emit unchanged events (dedup cursor in Redis).
