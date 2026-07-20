@@ -170,6 +170,8 @@ services:
         execution.checkpointing.interval: 10s
     volumes:
       - ./flink/sql:/opt/sql:ro
+      # Shaded DataStream job jars, submitted with `flink run` (see scripts/submit-flink-jar.sh).
+      - ./flink/jobs:/opt/jobs:ro
 
   flink-taskmanager:
     build:

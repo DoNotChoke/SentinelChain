@@ -5,8 +5,8 @@ COMPOSE ?= docker compose
 
 .DEFAULT_GOAL := help
 .PHONY: help up up-full down reset logs ps bootstrap create-topics register-schemas \
-        register-connectors migrate seed submit-job3 run-usgs demo install lint format \
-        typecheck test test-integration
+        register-connectors migrate seed submit-job3 build-flink submit-job1 submit-job2 \
+        submit-job4 run-usgs demo install lint format typecheck test test-integration
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -52,6 +52,22 @@ seed: ## Apply schema + seed the deterministic demo scenario into Postgres
 
 submit-job3: ## Submit Flink Job 3 (operational-current-state) — requires up-full
 	bash scripts/submit-flink-sql.sh operational_current_state.sql
+
+## ── Flink DataStream jobs (Java) ────────────────────────────────────────────
+# Build in a Maven container so the only host requirement stays Docker. The repo root is
+# mounted (not just flink/) because the job bundles schemas/avro as classpath resources.
+build-flink: ## Build the Java Flink job fat-jars (Maven in Docker)
+	docker run --rm -v "$(CURDIR):/build" -v "$(HOME)/.m2:/root/.m2" -w /build/flink \
+		maven:3.9-eclipse-temurin-17 mvn -q -B package
+
+submit-job1: ## Submit Flink Job 1 (external-event-normalizer) — requires up-full + build-flink
+	bash scripts/submit-flink-jar.sh
+
+submit-job2: ## Submit Flink Job 2 (event-deduplicator) — requires up-full + build-flink
+	bash scripts/submit-flink-jar.sh /opt/jobs/event-deduplicator/target/event-deduplicator.jar
+
+submit-job4: ## Submit Flink Job 4 (event-geo-correlator) — requires up-full + build-flink
+	bash scripts/submit-flink-jar.sh /opt/jobs/event-geo-correlator/target/event-geo-correlator.jar
 
 run-usgs: ## Run the USGS ingestion service (poll → ext.usgs.raw.v1) — requires `make up`
 	$(PYTHON) -m ingestion_usgs.main

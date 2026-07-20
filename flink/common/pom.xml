@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Shared utilities for the Flink DataStream jobs: job config parsing, Avro schema loading, and
+    Confluent Schema Registry (de)serialization helpers. Keeping these here avoids each job
+    re-implementing serde/config (mirrors the role of libs/common on the Python side).
+  -->
+  <parent>
+    <groupId>com.sentinelchain</groupId>
+    <artifactId>sentinelchain-flink</artifactId>
+    <version>0.1.0</version>
+  </parent>
+
+  <artifactId>sentinelchain-flink-common</artifactId>
+  <name>SentinelChain Flink Common</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-streaming-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-connector-kafka</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-avro</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.flink</groupId>
+      <artifactId>flink-avro-confluent-registry</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.avro</groupId>
+      <artifactId>avro</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <!--
+        The Avro schemas in schemas/avro/ are the single source of truth (ADR-001). Bundle them
+        onto the classpath under /avro so a job can load its reader/writer schema at runtime by
+        topic name, instead of copying .avsc files into each module.
+      -->
+      <resource>
+        <directory>${project.basedir}/../../schemas/avro</directory>
+        <targetPath>avro</targetPath>
+        <includes>
+          <include>*.avsc</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+</project>

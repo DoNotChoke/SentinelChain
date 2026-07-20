@@ -1,0 +1,112 @@
+{
+  "type": "record",
+  "name": "ImpactCandidate",
+  "namespace": "sentinelchain.risk.impact_candidates.v1",
+  "doc": "A geospatial impact candidate on risk.impact_candidates.v1 (PLAN §11.4, §18 Job 4). Flink Job 4 (event-geo-correlator) joins each deduplicated event against the facility current-state (broadcast) and emits one record per (event, facility) pair inside the event's impact radius. Keyed by impact_id (= source_event_id::asset_id). Subject: risk.impact_candidates.v1-value, BACKWARD compatibility (ADR-001).",
+  "fields": [
+    {
+      "name": "impact_id",
+      "type": "string",
+      "doc": "Deterministic id = source_event_id + '::' + asset_id. Stable across replays so downstream stays idempotent (ADR-007). Also the Kafka key."
+    },
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "The envelope message id of the event that produced this candidate."
+    },
+    {
+      "name": "source",
+      "type": "string"
+    },
+    {
+      "name": "source_event_id",
+      "type": "string",
+      "doc": "Stable event identity carried from the canonical event."
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Canonical category, e.g. 'earthquake'."
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "asset_type",
+      "type": "string",
+      "doc": "'facility' (warehouses/routes added later)."
+    },
+    {
+      "name": "asset_id",
+      "type": "string"
+    },
+    {
+      "name": "supplier_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Owning supplier of the facility, carried from current-state to save a join downstream."
+    },
+    {
+      "name": "event_latitude",
+      "type": "double"
+    },
+    {
+      "name": "event_longitude",
+      "type": "double"
+    },
+    {
+      "name": "asset_latitude",
+      "type": "double"
+    },
+    {
+      "name": "asset_longitude",
+      "type": "double"
+    },
+    {
+      "name": "distance_km",
+      "type": "double",
+      "doc": "Haversine great-circle distance event → asset."
+    },
+    {
+      "name": "radius_km",
+      "type": "double",
+      "doc": "Threshold radius applied for this event_type/severity (PLAN §11.4)."
+    },
+    {
+      "name": "inside_affected_area",
+      "type": "boolean",
+      "doc": "distance_km <= radius_km."
+    },
+    {
+      "name": "severity",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Event severity magnitude (earthquake magnitude)."
+    },
+    {
+      "name": "geospatial_score",
+      "type": "double",
+      "doc": "Proximity score in [0,1]: max(0, 1 - distance_km/radius_km). 1 at the epicentre, 0 at the edge."
+    },
+    {
+      "name": "trace_id",
+      "type": "string"
+    },
+    {
+      "name": "tenant_id",
+      "type": "string",
+      "default": "demo"
+    },
+    {
+      "name": "calculated_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    }
+  ]
+}

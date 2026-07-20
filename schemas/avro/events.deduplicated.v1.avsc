@@ -1,0 +1,124 @@
+{
+  "type": "record",
+  "name": "DeduplicatedEvent",
+  "namespace": "sentinelchain.events.deduplicated.v1",
+  "doc": "Deduplicated canonical event on events.deduplicated.v1 (PLAN §11.2, §18 Job 2). Structurally identical to events.normalized.v1: Flink Job 2 (event-deduplicator) keys state on source + source_event_id and only re-emits a record whose content actually changed, dropping exact replays. Keyed by source_event_id. Subject: events.deduplicated.v1-value, BACKWARD compatibility (ADR-001).",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique per message. NOT the dedup key."
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "doc": "Canonical category, e.g. 'earthquake'."
+    },
+    {
+      "name": "event_version",
+      "type": "int",
+      "default": 1,
+      "doc": "Envelope schema version."
+    },
+    {
+      "name": "source",
+      "type": "string"
+    },
+    {
+      "name": "source_event_id",
+      "type": "string",
+      "doc": "Stable across upstream updates. The dedup key is source + source_event_id (ADR-007)."
+    },
+    {
+      "name": "source_version",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Upstream 'updated' time as ISO-8601 UTC."
+    },
+    {
+      "name": "event_time",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Business time; the watermarked event-time attribute (carried through)."
+    },
+    {
+      "name": "ingested_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "normalized_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      }
+    },
+    {
+      "name": "trace_id",
+      "type": "string"
+    },
+    {
+      "name": "correlation_id",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "tenant_id",
+      "type": "string",
+      "default": "demo"
+    },
+    {
+      "name": "payload",
+      "doc": "Source-agnostic canonical payload. All coordinates in WGS84 degrees.",
+      "type": {
+        "type": "record",
+        "name": "DeduplicatedPayload",
+        "fields": [
+          {
+            "name": "latitude",
+            "type": "double"
+          },
+          {
+            "name": "longitude",
+            "type": "double"
+          },
+          {
+            "name": "severity",
+            "type": ["null", "double"],
+            "default": null
+          },
+          {
+            "name": "severity_scale",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "depth_km",
+            "type": ["null", "double"],
+            "default": null
+          },
+          {
+            "name": "place",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "source_url",
+            "type": ["null", "string"],
+            "default": null
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "active",
+            "doc": "Lifecycle status: 'active' | 'cancelled'. A cancellation changes the content hash, so it flows through as an update."
+          }
+        ]
+      }
+    }
+  ]
+}

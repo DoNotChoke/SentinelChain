@@ -27,6 +27,24 @@ It is built as two pipelines on a shared Kafka backbone:
 
 ## Status
 
+Milestone 3 — **Normalization + geospatial correlation** (in progress). Two DataStream/Java jobs
+(ADR-002) so far. Job 1 [`external-event-normalizer`](flink/jobs/external-event-normalizer/) reads
+`ext.usgs.raw.v1` (Avro), applies the PLAN §28 data-quality rules with event-time watermarks, and
+routes each record to `events.normalized.v1` (canonical shape) or `audit.data_quality.v1` (see the
+[data contract](docs/data-contracts/events-normalized.md)). Job 2
+[`event-deduplicator`](flink/jobs/event-deduplicator/) is the first **stateful** job: keyed state
+per `source + source_event_id` with TTL, re-emitting to `events.deduplicated.v1` only real content
+changes and dropping replays — checkpointed, so the guard survives a restart (ADR-007, see the
+[data contract](docs/data-contracts/events-deduplicated.md)). Job 4
+[`event-geo-correlator`](flink/jobs/event-geo-correlator/) is the second stateful job and the heart
+of the risk pipeline: it holds the facility current-state in **broadcast state** and, for each
+event, applies the §11.4 magnitude-threshold radius + Haversine distance to emit
+`risk.impact_candidates.v1` (see the [data contract](docs/data-contracts/risk-impact-candidates.md)).
+This completes M3's normalize → dedup → geo-correlate slice; risk scoring + alerting (M4) is next.
+Build the Java jobs with `make build-flink` (Maven runs in a container — only Docker is required) and
+submit with `make submit-job1` / `submit-job2` / `submit-job4` (Job 3 current-state via
+`make submit-job3`).
+
 Milestone 2 — **External event ingestion (USGS)** (done). The
 [`ingestion-usgs`](services/ingestion-usgs/) service polls the USGS GeoJSON feed with a
 persisted Redis cursor and an idempotent producer into `ext.usgs.raw.v1`; invalid records go to

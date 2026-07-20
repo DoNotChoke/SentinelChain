@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    SentinelChain Flink jobs (ADR-002): stateful jobs use the DataStream/Java API, simple jobs
+    stay in Flink SQL (see flink/sql/). This is the parent of the Java multi-module build; each
+    stateful job is its own module producing a shaded fat-jar submitted with `flink run`.
+    Flink core is `provided` — it ships inside the sentinelchain/flink image (see infra/flink).
+  -->
+  <groupId>com.sentinelchain</groupId>
+  <artifactId>sentinelchain-flink</artifactId>
+  <version>0.1.0</version>
+  <packaging>pom</packaging>
+  <name>SentinelChain Flink</name>
+
+  <modules>
+    <module>common</module>
+    <module>jobs/external-event-normalizer</module>
+    <module>jobs/event-deduplicator</module>
+    <module>jobs/event-geo-correlator</module>
+  </modules>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>17</maven.compiler.release>
+    <flink.version>1.18.1</flink.version>
+    <!-- DataStream Kafka connector (distinct from the SQL uber-jar baked into the image). -->
+    <kafka.connector.version>3.2.0-1.18</kafka.connector.version>
+    <avro.version>1.11.3</avro.version>
+    <!-- Own (unshaded) Jackson for parsing the JSON facility current-state; distinct from Flink's shaded copy. -->
+    <jackson.version>2.15.3</jackson.version>
+    <junit.version>5.10.2</junit.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Flink core: provided by the runtime image, not shaded into the fat-jars. -->
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-streaming-java</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-clients</artifactId>
+        <version>${flink.version}</version>
+        <scope>provided</scope>
+      </dependency>
+
+      <!-- Bundled into every job fat-jar (absent from the base image). -->
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-connector-kafka</artifactId>
+        <version>${kafka.connector.version}</version>
+      </dependency>
+      <!-- DeliveryGuarantee et al.; referenced by KafkaSink, not always pulled transitively. -->
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-connector-base</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-avro</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.flink</groupId>
+        <artifactId>flink-avro-confluent-registry</artifactId>
+        <version>${flink.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro</artifactId>
+        <version>${avro.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+
+      <!-- Test -->
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- Internal -->
+      <dependency>
+        <groupId>com.sentinelchain</groupId>
+        <artifactId>sentinelchain-flink-common</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.5.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.2.5</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+
+  <repositories>
+    <!-- flink-avro-confluent-registry pulls the Confluent Schema Registry client from here. -->
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
+</project>
